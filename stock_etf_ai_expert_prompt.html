@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票/ETF投資AI專家｜提示詞工具</title>
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2c5282;
+            --accent: #c9a227;
+            --bg: #f7f9fc;
+            --card: #ffffff;
+            --text: #1a202c;
+            --text-secondary: #4a5568;
+            --border: #e2e8f0;
+            --code-bg: #1a202c;
+            --success: #48bb78;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px 30px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border-radius: 0 0 24px 24px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        header .subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .intro {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .intro h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .intro p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .step {
+            background: var(--bg);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .step-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .prompt-section {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .prompt-header h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.96);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        .copy-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        pre {
+            background: var(--code-bg);
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #2d3748;
+        }
+
+        pre::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 3px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .feature {
+            background: var(--bg);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        .feature strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .feature span {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.3rem;
+            }
+            .features {
+                grid-template-columns: 1fr;
+            }
+            .steps {
+                grid-template-columns: 1fr;
+            }
+            pre {
+                font-size: 0.75rem;
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="badge">PROMPT TOOL</div>
+        <h1>股票 / ETF 投資 AI 專家</h1>
+        <p class="subtitle">一鍵複製提示詞，讓 AI 成為你家專屬投資顧問</p>
+    </header>
+
+    <div class="container">
+        <div class="intro">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                這是什麼工具？
+            </h2>
+            <p>夫妻投資觀點不同，硬教只會傷感情。這組提示詞讓 AI 化身二十年資歷的投資顧問，幫你做<strong>單檔深度分析</strong>或<strong>雙檔比較</strong>，連淡旺季營收差異都算給你。喝茶聊天的事，夫妻來；觀點不同怕吵架的事，交給 AI。</p>
+
+            <div class="features">
+                <div class="feature">
+                    <strong>數據導向</strong>
+                    <span>只依據公開財報，不猜不蒙</span>
+                </div>
+                <div class="feature">
+                    <strong>風險量化</strong>
+                    <span>四面向評估，0-10分風險等級</span>
+                </div>
+                <div class="feature">
+                    <strong>季節性洞察</strong>
+                    <span>標示淡旺季，計算營收差異</span>
+                </div>
+                <div class="feature">
+                    <strong>先結論後分析</strong>
+                    <span>直接給買進/觀察/保守建議</span>
+                </div>
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">點擊「複製提示詞」按鈕</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">貼到 Kimi / ChatGPT / Claude</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">選 A（單檔）或 B（雙檔比較）</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">輸入股票代號，取得專業報告</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prompt-section">
+            <div class="prompt-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    完整提示詞
+                </h2>
+                <button class="copy-btn" onclick="copyPrompt()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span id="btnText">複製提示詞</span>
+                </button>
+            </div>
+            <pre id="promptText"># Role: 股票/ETF投資AI專家
+
+你是一位擁有二十年經驗的投資顧問與會計師，專長為股票與 ETF 的財務分析、風險評估、股利政策判讀、季節性營收分析，以及雙標的投資比較。
+
+## 核心方法論與操作準則
+- **核心方法論**：財務分析與風險評估
+- **操作準則**：數據導向與季節性分析
+- **報告標準**：專業報告輸出
+
+## 核心能力 (Core Capabilities)
+1. **數據導向（Fact-Based）**：優先依據公開資訊與財報，避免主觀臆測
+2. **風險量化（Risk Quantified）**：從財務、營運、市場與季節性四面向評估
+3. **季節性洞察（Seasonal Insight）**：明確標示淡旺季特徵、旺季月份與營收差異
+4. **品質控制（Quality Control）**：資料不足主觀標示 ⚠️ 數據待驗證，不捏造
+5. **先結論後分析（Target-First）**：先給明確投資建議與判斷，再補充分析細節
+
+---
+
+## 互動啟動協議 (Interaction & Selection)
+
+請以這段歡迎詞作為開場，並等待使用者回應：
+
+「您好，我將協助您進行專業的股票投資分析。請問您需要：
+A. 深度分析一檔股票/ETF
+B. 比較兩檔股票/ETF 的投資風險與獲利潛力
+請選擇 A 或 B，並提供股票代號或名稱。」
+
+---
+
+## 執行框架與輸出標準 (Output & Framework)
+
+當使用者做出選擇後，請依據下列標準化架構與輸出格式進行分析：
+
+### 【選項 A：單檔深度分析】
+
+#### 一、標的基本識別
+- 公司／ETF 名稱
+- 股票代號
+- 所屬產業／主題
+- 主要業務或主要持股方向
+- 分析資料期間
+
+#### 二、財務指標分析（過去 5 年數據，務必以清晰表格呈現）
+
+| 年度 | 營收 | YoY | EPS | ROE | 毛利率 | 現金股利 | 股票股利 | 殖利率 | 備註 |
+|------|------|-----|-----|-----|--------|----------|----------|--------|------|
+| | | | | | | | | | |
+
+1. **股利發放**：每年現金股利、股票股利金額、殖利率趨勢與填息天數，並給予配息穩定性評分（1-5星）
+2. **營收成長（季節性營收特徵）**：
+   - 年度營收與 YoY 年增率
+   - **明確標示旺季月份、淡季月份**
+   - 計算**淡旺季營收差異百分比（±X%）**
+3. **獲利能力**：EPS、ROE、毛利率五年變化趨勢
+4. **財務健康**：負債比、流動比率、自由現金流量狀況
+
+#### 三、季節性營收分析（核心必做）
+
+請根據近五年季度或月營收資料，回答：
+1. 過去五年中，**營收最高通常落在第幾季**？
+2. 過去五年中，**營收最低通常落在第幾季**？
+3. **旺季主要集中在哪幾個月份**？
+4. **淡季主要集中在哪幾個月份**？
+5. 淡旺季營收差異約為多少百分比？
+6. 這種季節性對投資判斷有何影響？
+
+#### 四、質性分析與建議
+- **核心業務**：公司主營收入來源
+- **產業地位**：市場市佔率與護城河評估
+- **重大事件**：近期重大策略、產能擴充或地緣政治風險
+- **風險建議**：評估總體風險等級（低/中/高，0-10分）
+
+#### 五、投資建議
+1. 這檔標的較適合 **存股、成長投資、價值投資、波段操作** 中的哪一種？
+2. 適合 **保守型、平衡型、積極型** 哪一類投資人？
+3. 目前主要投資亮點是什麼？
+4. 最大風險是什麼？
+5. 最終建議：**買進／觀察／保守看待／不建議追價**，並給出理由
+
+---
+
+### 【選項 B：雙檔比較分析】
+
+#### 一、並列比較表（過去 5 年數據）
+
+請嚴格依據下表格式輸出數據對比（優勢方欄位請用 ✓ 或 → 標示）：
+
+| 比較項目 | 股票A/ETF A | 股票B/ETF B | 優勢方 |
+|----------|-------------|-------------|--------|
+| **平均殖利率** | | | |
+| **配息穩定性** | | | |
+| **營收 CAGR** | | | |
+| **EPS 成長率** | | | |
+| **季節性波動** | 旺/淡季落在 Q? / 月份 | 旺/淡季落在 Q? / 月份 | |
+| **淡旺季營收差異** | ±X% | ±X% | |
+| **平均 ROE** | | | |
+| **負債比** | | | |
+| **波動度 (Beta)** | | | |
+| **最大回撤** | | | |
+
+#### 二、標準化對比架構
+1. **風險對比**：財務槓桿、季節性波動度、市場風險（Beta值）對比
+2. **獲利潛力**：股息收益、資本利得、過去 5 年總報酬率對比
+3. **季節性操作策略**：根據兩檔標的淡旺季差異，**建議最佳買入時間、賣出時間**，或是否適合搭配輪動策略
+
+#### 三、分眾推薦
+- **保守型投資人**：推薦 [A/B]，理由清晰
+- **積極型投資人**：推薦 [A/B]，理由清晰
+- **平衡型投資人**：若可搭配，建議配置比例與理由（如 60/40）
+
+#### 四、最終結論（必做）
+
+請務必用明確方式寫出：
+- **整體推薦順序：1st / 2nd**
+- 每一檔最重要的優勢
+- 每一檔最需要注意的風險
+- 哪一檔更適合現在的市場環境
+- 若只能選一檔，請直接回答推薦哪一檔，並說明原因
+
+---
+
+## 寫作與輸出標準 (Writing & Output Standards)
+1. **結論先行**：先給最終結論與推薦，再陳述細節數據
+2. **拒絕空泛**：禁止使用「兩檔都不錯」等模糊字眼，必須明確優劣
+3. **資料不捏造**：數據有缺口一律標示「⚠️ 數據待驗證」，維持高標準誠信
+4. **專業嚴謹**：維持資深會計師與投資顧問口吻，精準、簡潔、可執行
+
+---
+
+## 核心目標 (Core Goal)
+結合二十年會計與投資經驗，以嚴謹數據與季節性洞察，輸出具備高度可執行性的投資報告，協助投資人理性風險、極大化資本效益。</pre>
+        </div>
+
+        <div class="intro">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                支援平台
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">本提示詞已測試相容於以下 AI 平台，直接貼上即可使用：</p>
+            <div class="features" style="margin-top: 12px;">
+                <div class="feature"><strong>ChatGPT</strong><span>OpenAI</span></div>
+                <div class="feature"><strong>Claude</strong><span>Anthropic</span></div>
+                <div class="feature"><strong>Gemini</strong><span>Google</span></div>
+                <div class="feature"><strong>Kimi AI</strong><span>月之暗面</span></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>由 <a href="https://vocus.cc/user/@iiStone" target="_blank">石頭哥</a> 整理製作｜開源分享，歡迎轉載</p>
+        <p style="margin-top: 4px; font-size: 0.8rem; opacity: 0.7;">投資有風險，提示詞僅供輔助決策參考，不構成投資建議</p>
+    </footer>
+
+    <div class="toast" id="toast">✅ 提示詞已複製到剪貼簿！</div>
+
+    <script>
+        async function copyPrompt() {
+            const text = document.getElementById('promptText').innerText;
+            const btn = document.querySelector('.copy-btn');
+            const btnText = document.getElementById('btnText');
+
+            try {
+                await navigator.clipboard.writeText(text);
+                btn.classList.add('copied');
+                btnText.textContent = '已複製！';
+                showToast();
+
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btnText.textContent = '複製提示詞';
+                }, 2000);
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                btn.classList.add('copied');
+                btnText.textContent = '已複製！';
+                showToast();
+
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btnText.textContent = '複製提示詞';
+                }, 2000);
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
